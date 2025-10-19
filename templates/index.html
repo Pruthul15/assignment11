@@ -90,8 +90,24 @@
                 
                 - padding: Adds 5 pixels of vertical padding and 10 pixels of horizontal padding
                   inside buttons to make them larger and more clickable.
+                - background-color: Blue background to make buttons stand out
+                - color: White text for better contrast
+                - border: Remove default border
+                - border-radius: Rounded corners for modern look
+                - cursor: Show pointer cursor on hover
             */
             padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            /* Button hover effect for better user experience */
+            background-color: #0056b3;
         }
         
         .result {
@@ -103,6 +119,13 @@
             */
             margin-top: 10px;
             font-weight: bold;
+        }
+        
+        .footer {
+            /* Footer styling for student attribution */
+            margin-top: 50px;
+            font-size: 14px;
+            color: #666;
         }
     </style>
 </head>
@@ -121,6 +144,12 @@
         
         The <h1> element represents the most important heading on the page. It is typically used
         for the main title or headline. Search engines give significant weight to <h1> tags for SEO.
+    -->
+    
+    <p class="footer">Created by Pruthul Patel - IS 601 Assignment 11</p>
+    <!--
+        Student attribution added to demonstrate understanding of HTML structure
+        and personalization of the application.
     -->
     
     <div class="calculator">
@@ -287,7 +316,7 @@
                           
                         - resultElement.innerText: Updates the text inside the result <div> to display the result.
                     */
-                    resultElement.innerText = 'Result: ' + data.result;
+                    resultElement.innerText = 'Calculation Result: ' + data.result;
                 } else {
                     /*
                         Error Response Handling
