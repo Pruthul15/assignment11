@@ -1,16 +1,19 @@
 """
-SQLAlchemy User Model - ONLY required fields per assignment.
+SQLAlchemy User Model with Calculation relationship.
+Author: Pruthul Patel
+Date: October 18, 2025
 """
 import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 from app.database import Base
 import bcrypt
 
 
 class User(Base):
-    """User model with password hashing"""
+    """User model with password hashing and calculation relationship"""
     __tablename__ = "users"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -18,6 +21,9 @@ class User(Base):
     email = Column(String(100), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Relationship to calculations - NEW for Assignment 11
+    calculations = relationship("Calculation", back_populates="user", cascade="all, delete-orphan")
     
     def set_password(self, password: str) -> None:
         """Hash and set password using bcrypt"""
