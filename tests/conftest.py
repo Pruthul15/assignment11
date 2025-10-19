@@ -1,9 +1,11 @@
 """
 Test configuration and fixtures with Faker support.
+Author: Pruthul Patel
+Date: October 18, 2025
 """
 import pytest
 from faker import Faker
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from contextlib import contextmanager
 from app.database import Base
@@ -14,7 +16,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Use SQLite for tests
+# Use SQLite for tests (NOT PostgreSQL)
 TEST_DATABASE_URL = "sqlite:///./test.db"
 
 fake = Faker()
@@ -89,12 +91,13 @@ def managed_db_session() -> Session:
 def pytest_configure(config):
     """Register custom markers"""
     config.addinivalue_line("markers", "slow: marks tests as slow")
+    config.addinivalue_line("markers", "e2e: marks tests as end-to-end tests")
 
 
 # Playwright fixtures for E2E tests
 @pytest.fixture(scope="session")
 def browser():
-    """Launch browser for E2E tests"""
+    """Launch Chromium browser for E2E tests"""
     from playwright.sync_api import sync_playwright
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
@@ -104,104 +107,60 @@ def browser():
 
 @pytest.fixture
 def page(browser):
-    """Create a new page for each test"""
+    """Create a new page for each E2E test"""
     page = browser.new_page()
     yield page
     page.close()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def fastapi_server():
-    """Start FastAPI server for E2E tests"""
+    """Start FastAPI server for E2E tests with proper initialization"""
     import subprocess
     import time
+    import socket
     
+    def is_port_in_use(port):
+        """Check if a port is in use"""
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            return s.connect_ex(('localhost', port)) == 0
+    
+    # Kill any existing process on port 8000
+    if is_port_in_use(8000):
+        try:
+            subprocess.run(["fuser", "-k", "8000/tcp"], stderr=subprocess.DEVNULL)
+            time.sleep(1)
+        except FileNotFoundError:
+            # fuser not available on all systems
+            pass
+    
+    # Start the FastAPI server
     process = subprocess.Popen(
         ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
-    time.sleep(2)  # Wait for server to start
+    
+    # Wait for server to be ready (up to 10 seconds)
+    max_wait = 10
+    server_ready = False
+    for _ in range(max_wait * 2):
+        if is_port_in_use(8000):
+            time.sleep(0.5)  # Extra time for server to fully initialize
+            server_ready = True
+            break
+        time.sleep(0.5)
+    
+    if not server_ready:
+        process.kill()
+        process.wait()
+        raise RuntimeError("FastAPI server failed to start within 10 seconds")
+    
+    logger.info("FastAPI server started successfully on port 8000")
+    
     yield
-    process.kill()
-
-
-# ============================================================================
-# Playwright Fixtures for E2E Tests
-# ============================================================================
-
-import pytest
-from playwright.sync_api import sync_playwright
-import subprocess
-import time
-
-
-@pytest.fixture(scope="session")
-def browser():
-    """Launch Chromium browser for E2E tests"""
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        yield browser
-        browser.close()
-
-
-@pytest.fixture
-def page(browser):
-    """Create a new page for each E2E test"""
-    page = browser.new_page()
-    yield page
-    page.close()
-
-
-@pytest.fixture(scope="session")
-def fastapi_server():
-    """Start FastAPI server for E2E tests"""
-    process = subprocess.Popen(
-        ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-    time.sleep(3)  # Wait for server to start
-    yield
+    
+    # Cleanup: kill the server
     process.kill()
     process.wait()
-
-
-# ============================================================================
-# Playwright Fixtures for E2E Tests
-# ============================================================================
-
-import subprocess
-import time
-
-
-@pytest.fixture(scope="session")
-def browser():
-    """Launch Chromium browser for E2E tests"""
-    from playwright.sync_api import sync_playwright
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        yield browser
-        browser.close()
-
-
-@pytest.fixture
-def page(browser):
-    """Create a new page for each E2E test"""
-    page = browser.new_page()
-    yield page
-    page.close()
-
-
-@pytest.fixture(scope="session")
-def fastapi_server():
-    """Start FastAPI server for E2E tests"""
-    process = subprocess.Popen(
-        ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-    time.sleep(3)  # Wait for server to start
-    yield
-    process.kill()
-    process.wait()
+    logger.info("FastAPI server stopped")
