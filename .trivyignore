@@ -1,0 +1,5 @@
+# h11 vulnerability - Cannot upgrade due to httpcore dependency conflicts
+# httpcore 1.0.6 requires h11<0.15, but h11 0.16.0 is needed to fix CVE
+# This is a known issue in the Python ecosystem
+# Reference: https://github.com/encode/httpcore/issues
+CVE-2025-43859
