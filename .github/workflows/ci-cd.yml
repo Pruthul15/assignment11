@@ -43,34 +43,15 @@ jobs:
       
       - name: Install dependencies
         run: |
-          python -m venv venv
-          source venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
-          playwright install chromium
-          playwright install-deps
       
-      - name: Run unit tests
+      - name: Run all tests with 90% coverage requirement
         env:
           DATABASE_URL: postgresql://user:password@localhost:5432/testdb
         run: |
-          source venv/bin/activate
-          pytest tests/unit/ --cov=app --junitxml=test-results/junit.xml
-      
-      - name: Run integration tests
-        env:
-          DATABASE_URL: postgresql://user:password@localhost:5432/testdb
-        run: |
-          source venv/bin/activate
-          pytest tests/integration/
-      
-      - name: Run E2E tests
-        env:
-          DATABASE_URL: postgresql://user:password@localhost:5432/testdb
-        run: |
-          source venv/bin/activate
-          pytest tests/e2e/
-  
+          pytest --cov=app --cov-report=term-missing --cov-fail-under=90 tests/
+
   security:
     needs: test
     runs-on: ubuntu-latest
@@ -107,6 +88,6 @@ jobs:
         with:
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/assignment11:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/assignment11:${{ github.sha }}
+            pruthul123/assignment11:latest
+            pruthul123/assignment11:${{ github.sha }}
           platforms: linux/amd64,linux/arm64
