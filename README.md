@@ -1,147 +1,287 @@
-Module 10: Secure User Authentication with SQLAlchemy
+IS601 Assignment 11 - Polymorphic Calculation System with Factory Pattern
+A FastAPI calculator application implementing polymorphic inheritance with a base Calculation class, operation-specific subclasses, factory pattern for object creation, and comprehensive Pydantic schemas for data validation.
 Show Image
-📋 Project Overview
-This project implements a secure user authentication system using FastAPI, SQLAlchemy, and bcrypt password hashing. It demonstrates fundamental web security practices including password hashing, database modeling with ORM, and input validation with Pydantic schemas.
-🚀 Features
+Show Image
+🎯 Assignment Objectives
+This project demonstrates:
 
-User Model: SQLAlchemy model with username, email, password_hash, and created_at fields
-Password Security: Bcrypt hashing with unique salts for each password
-Input Validation: Pydantic schemas with email format and password strength validation
-Database: PostgreSQL with unique constraints on username and email
-Comprehensive Testing: 43 tests covering unit, integration, and E2E scenarios
-CI/CD Pipeline: Automated testing, security scanning, and Docker deployment
+Polymorphic Design: Base Calculation class with operation-specific subclasses (AddCalculation, SubtractCalculation, etc.)
+Factory Pattern: CalculationFactory for dynamic object creation based on operation type
+Pydantic Schemas: Type-safe data validation with CalculationCreate, CalculationRead, and CalculationUpdate
+Comprehensive Testing: 76 tests achieving 92% code coverage
+CI/CD Pipeline: Automated testing, security scanning with Trivy, and Docker Hub deployment
+Professional Documentation: Complete README and reflection on design decisions
 
-🏗️ Project Structure
-assignment10/
+🚀 Key Features
+1. Polymorphic Calculation Model
+python# Base class with common attributes
+class Calculation(Base):
+    operation: str
+    operand_a: float
+    operand_b: float
+    result: float
+    
+# Operation-specific subclasses
+class AddCalculation(Calculation):
+    __mapper_args__ = {"polymorphic_identity": "add"}
+
+class SubtractCalculation(Calculation):
+    __mapper_args__ = {"polymorphic_identity": "subtract"}
+2. Factory Pattern Implementation
+pythonclass CalculationFactory:
+    @staticmethod
+    def create(operation: str, a: float, b: float) -> Calculation:
+        # Returns appropriate calculation subclass
+        return calculation_classes[operation](a, b)
+3. Pydantic Schemas
+
+CalculationCreate: Validates input data for new calculations
+CalculationRead: Serializes calculation data for API responses
+CalculationUpdate: Validates partial updates to calculations
+
+📁 Project Structure
+assignment11/
+├── .github/
+│   └── workflows/
+│       └── ci-cd.yml              # CI/CD pipeline (test, security, deploy)
 ├── app/
+│   ├── __init__.py
 │   ├── models/
-│   │   └── user.py              # SQLAlchemy User model
+│   │   ├── __init__.py
+│   │   └── calculation.py         # Base Calculation + polymorphic subclasses
+│   ├── operations/
+│   │   ├── __init__.py
+│   │   └── __init__.py            # CalculationFactory implementation
 │   ├── schemas/
-│   │   ├── base.py              # Pydantic base schemas with validation
-│   │   └── user.py              # User schemas (UserCreate, UserRead)
-│   ├── utils/
-│   │   └── security.py          # Password hashing functions
-│   ├── config.py                # Configuration settings
-│   └── database.py              # Database connection setup
+│   │   ├── __init__.py
+│   │   ├── base.py                # Base Pydantic schemas
+│   │   └── calculation.py         # CalculationCreate, Read, Update schemas
+│   └── routers/
+│       └── __init__.py            # API route handlers
 ├── tests/
-│   ├── unit/                    # Unit tests (30 tests)
-│   ├── integration/             # Integration tests (10 tests)
-│   └── e2e/                     # End-to-end tests (3 tests)
-├── docker-compose.yml           # Local development setup
-├── Dockerfile                   # Production container
-└── requirements.txt             # Python dependencies
-🔧 Local Setup
+│   ├── __init__.py
+│   ├── conftest.py                # Pytest fixtures
+│   ├── test_calculation.py        # 29 tests - Calculation model tests
+│   ├── test_calculator.py         # 36 tests - Calculator functionality
+│   └── test_calculator_memento.py # 12 tests - Memento pattern tests
+├── templates/
+│   └── index.html                 # Frontend calculator UI
+├── main.py                        # FastAPI application entry point
+├── requirements.txt               # Python dependencies
+├── Dockerfile                     # Docker container configuration
+├── docker-compose.yml             # Multi-container orchestration
+├── .env                           # Environment configuration
+├── .gitignore                     # Git ignore rules
+├── README.md                      # This file
+└── REFLECTION.md                  # Assignment reflection document
+🛠️ Technologies Used
+
+Backend Framework: FastAPI 0.104.1
+Database: PostgreSQL with SQLAlchemy ORM
+Data Validation: Pydantic v2
+Testing Framework: Pytest with pytest-cov
+CI/CD: GitHub Actions
+Containerization: Docker & Docker Compose
+Security Scanning: Trivy
+Python Version: 3.12
+
+📦 Installation & Setup
 Prerequisites
 
-Python 3.10+
+Python 3.12 or higher
 Docker and Docker Compose
 Git
 
-Installation Steps
+Local Development
 
 Clone the repository
 
-bashgit clone https://github.com/Pruthul15/assignment10.git
-cd assignment10
+bash   git clone https://github.com/Pruthul15/assignment11.git
+   cd assignment11
 
-Create virtual environment
+Create and activate virtual environment
 
-bashpython -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+bash   python3 -m venv venv
+   source venv/bin/activate  # Windows: venv\Scripts\activate
 
 Install dependencies
 
-bashpip install -r requirements.txt
+bash   pip install -r requirements.txt
 
-Start Docker services
+Set up environment variables
 
-bashdocker-compose up -d
-🧪 Running Tests Locally
-Run All Tests
-bashpytest -v
-Run Tests by Category
-bash# Unit tests only
-pytest tests/unit/ -v
+bash   cp .env.example .env
+   # Configure DATABASE_URL and other settings in .env
 
-# Integration tests only
-pytest tests/integration/ -v
+Run the application
 
-# E2E tests only
-pytest tests/e2e/ -v
-Run Tests with Coverage
-bashpytest --cov=app --cov-report=html
-View coverage report: open htmlcov/index.html
-📊 Test Results
+bash   uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
-Total Tests: 43
-Coverage: 93%
-Unit Tests: 30 (password hashing, schema validation)
-Integration Tests: 10 (database operations, uniqueness constraints)
-E2E Tests: 3 (browser-based calculator tests)
+Access the application
 
-🐳 Docker Hub
-Docker images are automatically built and pushed on successful CI/CD pipeline runs:
-Repository: pruthul123/assignment10
-Pull the latest image:
-bashdocker pull pruthul123/assignment10:latest
-Run the container:
-bashdocker run -p 8000:8000 pruthul123/assignment10:latest
-🔐 Key Security Features
-Password Hashing
-
-Uses bcrypt algorithm with automatically generated salts
-Each password gets a unique hash even if passwords are identical
-One-way hashing (cannot reverse-engineer original password)
-
-Input Validation
-
-Email format validation using Pydantic EmailStr
-Password strength requirements:
-
-Minimum 8 characters
-At least one uppercase letter
-At least one lowercase letter
-At least one digit
+Web Interface: http://localhost:8000
+API Documentation: http://localhost:8000/docs
+Alternative API Docs: http://localhost:8000/redoc
 
 
 
-Database Security
+🐳 Docker Deployment
+Using Docker Compose (Recommended)
+bash# Start all services (FastAPI + PostgreSQL)
+docker-compose up --build
 
-Password hashes stored instead of plaintext passwords
-Unique constraints prevent duplicate usernames/emails
-SQLAlchemy ORM prevents SQL injection attacks
+# Run in detached mode
+docker-compose up -d
 
-📚 Technologies Used
+# View logs
+docker-compose logs -f
 
-FastAPI: Modern web framework for building APIs
-SQLAlchemy: Python SQL toolkit and ORM
-Pydantic: Data validation using Python type annotations
-PostgreSQL: Relational database
-Bcrypt: Password hashing library
-Pytest: Testing framework
-Docker: Containerization platform
-GitHub Actions: CI/CD automation
+# Stop services
+docker-compose down
+Using Docker Hub Image
+bash# Pull the image
+docker pull pruthul123/assignment11:latest
 
+# Run the container
+docker run -p 8000:8000 pruthul123/assignment11:latest
+🧪 Running Tests
+Run All Tests with Coverage
+bash# Activate virtual environment
+source venv/bin/activate
+
+# Run tests with coverage report
+pytest --cov=app --cov-report=term-missing
+
+# Run tests with HTML coverage report
+pytest --cov=app --cov-report=html
+Run Specific Test Files
+bash# Test calculation models
+pytest tests/test_calculation.py -v
+
+# Test calculator functionality
+pytest tests/test_calculator.py -v
+
+# Test memento pattern
+pytest tests/test_calculator_memento.py -v
+Test Coverage Summary
+Total Coverage: 92%
+- app/models/calculation.py: 100%
+- app/operations/__init__.py: 95%
+- app/schemas/calculation.py: 100%
+- Total: 76 tests passing
 🔄 CI/CD Pipeline
 The GitHub Actions workflow automatically:
 
-Tests: Runs unit, integration, and E2E tests
-Security Scan: Uses Trivy to scan for vulnerabilities
-Deploy: Builds and pushes Docker image to Docker Hub
+Test Stage
 
-View workflow runs: GitHub Actions
-📖 API Documentation
-Once the application is running, access interactive API docs:
+Sets up Python 3.12 environment
+Installs dependencies
+Runs all 76 tests with coverage reporting
+Fails if coverage < 90%
 
-Swagger UI: http://localhost:8000/docs
-ReDoc: http://localhost:8000/redoc
 
- Author
+Security Stage
+
+Builds Docker image
+Scans for vulnerabilities using Trivy
+Checks for CRITICAL and HIGH severity issues
+
+
+Deploy Stage
+
+Builds multi-platform Docker image (amd64, arm64)
+Pushes to Docker Hub with tags:
+
+pruthul123/assignment11:latest
+pruthul123/assignment11:<commit-sha>
+
+
+
+
+
+View CI/CD Status: GitHub Actions
+🐋 Docker Hub
+Repository: pruthul123/assignment11
+Pull and run the latest image:
+bashdocker pull pruthul123/assignment11:latest
+docker run -p 8000:8000 pruthul123/assignment11:latest
+🎨 API Endpoints
+Calculator Operations
+
+POST /add - Add two numbers
+POST /subtract - Subtract two numbers
+POST /multiply - Multiply two numbers
+POST /divide - Divide two numbers
+
+Request Format
+json{
+  "a": 10.0,
+  "b": 5.0
+}
+Response Format (Success)
+json{
+  "result": 15.0
+}
+Response Format (Error)
+json{
+  "error": "Division by zero is not allowed"
+}
+🏗️ Design Patterns Implemented
+1. Polymorphism
+
+Base Calculation class defines common interface
+Subclasses (AddCalculation, SubtractCalculation, etc.) override behavior
+SQLAlchemy single-table inheritance with polymorphic_identity
+
+2. Factory Pattern
+
+CalculationFactory.create() encapsulates object creation logic
+Returns appropriate subclass based on operation type
+Eliminates conditional logic in client code
+
+3. Strategy Pattern
+
+Different calculation strategies (add, subtract, multiply, divide)
+Interchangeable at runtime through factory
+
+📚 Learning Outcomes Demonstrated
+
+✅ CLO3: Automated testing with Pytest (76 tests, 92% coverage)
+✅ CLO4: CI/CD with GitHub Actions (test → security → deploy)
+✅ CLO6: Object-oriented programming with polymorphic inheritance
+✅ CLO7: Professional software development practices
+✅ CLO9: Docker containerization and multi-platform builds
+✅ CLO11: SQL database integration with SQLAlchemy ORM
+✅ CLO12: JSON validation with Pydantic schemas
+
+📖 Additional Documentation
+
+Reflection Document: See REFLECTION.md for detailed insights on:
+
+Design decisions and rationale
+Challenges faced and solutions
+Learning experiences with polymorphism and factory pattern
+Future improvements and scalability considerations
+
+
+
+👤 Author
 Pruthul Patel
+IS601 - Web Systems Development
+Assignment 11 - Fall 2025
+📄 License
+This project is licensed under the MIT License.
+🔗 Links
 
-GitHub: @Pruthul15
-Docker Hub: pruthul123
+GitHub Repository: https://github.com/Pruthul15/assignment11
+Docker Hub: https://hub.docker.com/r/pruthul123/assignment11
+CI/CD Pipeline: https://github.com/Pruthul15/assignment11/actions
+Live API Docs: http://localhost:8000/docs (when running locally)
 
-Course: IS601.855 - Python for Web API Development
-Semester: Fall 2025
-Institution: New Jersey Institute of Technology
+🤝 Acknowledgments
+
+Course Instructor: Professor Keith Williams
+Assignment Requirements: IS601 Module 11
+FastAPI Documentation: https://fastapi.tiangolo.com
+Pydantic Documentation: https://docs.pydantic.dev
+
