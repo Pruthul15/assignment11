@@ -1,5 +1,3 @@
-name: CI/CD Pipeline
-
 on:
   push:
     branches: [ main ]
@@ -46,7 +44,6 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      # ✅ FIX: Install Playwright browsers before running tests
       - name: Install Playwright browsers
         run: python -m playwright install --with-deps
 
@@ -73,7 +70,7 @@ jobs:
           exit-code: '1'
           ignore-unfixed: true
           severity: 'CRITICAL,HIGH'
-  
+ 
   deploy:
     needs: security
     if: github.ref == 'refs/heads/main'
