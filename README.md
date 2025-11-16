@@ -339,13 +339,3 @@ This project is licensed under the MIT License.
 - **Docker Hub**: https://hub.docker.com/r/pruthul123/assignment11
 - **CI/CD Pipeline**: https://github.com/Pruthul15/assignment11/actions
 
-## 🤝 Acknowledgments
-
-
-- Assignment Requirements: IS601 Module 11
-- FastAPI Documentation: https://fastapi.tiangolo.com
-- Pydantic Documentation: https://docs.pydantic.dev
-
----
-
-**Note**: This project builds upon previous assignments and demonstrates advanced Python concepts including polymorphic inheritance, factory patterns, and comprehensive testing strategies.
